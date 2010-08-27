@@ -15,6 +15,7 @@ import javafx.scene.control.CheckBox;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.TextBox;
 import java.io.Serializable;
+import javafx.scene.layout.VBox;
 
 class Race extends Serializable {
     var name: String;
@@ -24,43 +25,57 @@ class Race extends Serializable {
     override function toString() { name }
 }
 
-function raceView(race: Race) { Scene {
-    content: [ListView {
-        items: bind race.checkpoints
+var raceName: TextBox;
+var speedInput: TextBox;
+var racesList: ListView;
+
+function raceView(race: Race) {
+    Scene {
+        content: VBox {
+            spacing: 2
+            content: [
+                ListView {
+                    items: bind race.checkpoints
+                },
+                speedInput = TextBox {
+                    text: bind "{race.targetAverageSpeed} km/h"
+                    action: function() {
+                        race.targetAverageSpeed = Float.parseFloat(speedInput.text);
+                        speedInput.text = "{race.targetAverageSpeed} km/h";
+                    }
+                }
+            ]
+        }
     }
-
-        ]
-}
 }
 
-var races: Race[];
-
-function goToRaceView() {
-    stage.scene = raceView;
-    return
-}
+var races: Race[] = [Race { name: "Naples-Bordeaux" }];
 
 
 def racesView: Scene = Scene {
-    width: 1024
-    height: 600
-    content:
-        [ListView {
+//    width: 1024
+//    height: 600
+    content: VBox {
+        spacing: 2
+        content: [racesList = ListView {
             items: bind races
             cellFactory: function() {
                 def cell: ListCell = ListCell {
-                    node: CheckBox {
-                        text: bind "{cell.item}"
+                    onUpdate: function() {
+                        if (cell.item == null)
+                            cell.node = null
+                        else
+                            cell.node = CheckBox {
+                                text : "{cell.item}"
+                            }
+
                     }
-
                 }
-
             }
-
         },
         Button {
             text: "SELECT"
-            action: goToRaceView
+            action: function() { stage.scene = raceView(races[racesList.selectedIndex]) }
         },
         Button {
             text: "DELETE"
@@ -69,24 +84,26 @@ def racesView: Scene = Scene {
             text: "NEW"
             action: function() { stage.scene = newRaceView; }
         }
-        
+
         ]
+    }
+
+        
 }
 
 def newRaceView = Scene {
-    content: [TextBox {
+    content: raceName = TextBox {
         promptText: "Enter name for new race my lord"
         action: function() {
-            println("Added new race");
+            races = [races, Race { name: raceName.text; }];
             stage.scene = racesView;
             }
-            }
-        ]
+        }
 }
 
 
 var stage = Stage {
     title: "Blaze"
-    fullScreen: true
+//    fullScreen: true
     scene: racesView
 }
