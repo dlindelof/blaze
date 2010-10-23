@@ -16,6 +16,7 @@ import javafx.scene.control.ListCell;
 import javafx.scene.control.TextBox;
 import java.io.Serializable;
 import javafx.scene.layout.VBox;
+import javafx.scene.layout.HBox;
 
 class Race extends Serializable {
     var name: String;
@@ -25,8 +26,8 @@ class Race extends Serializable {
     override function toString() { name }
 }
 
-var raceName: TextBox;
-var speedInput: TextBox;
+var raceNameInput: TextBox;
+var raceSpeedInput: TextBox;
 var racesList: ListView;
 
 function raceView(race: Race) {
@@ -37,11 +38,11 @@ function raceView(race: Race) {
                 ListView {
                     items: bind race.checkpoints
                 },
-                speedInput = TextBox {
+                raceSpeedInput = TextBox {
                     text: bind "{race.targetAverageSpeed} km/h"
                     action: function() {
-                        race.targetAverageSpeed = Float.parseFloat(speedInput.text);
-                        speedInput.text = "{race.targetAverageSpeed} km/h";
+                        race.targetAverageSpeed = Float.parseFloat(raceSpeedInput.text);
+                        raceSpeedInput.text = "{race.targetAverageSpeed} km/h";
                     }
                 }
             ]
@@ -49,12 +50,12 @@ function raceView(race: Race) {
     }
 }
 
-var races: Race[] = [Race { name: "Naples-Bordeaux" }];
+var races: Race[];// = [Race { name: "Naples-Bordeaux", targetAverageSpeed: 50, checkpoints: [200] }];
 
 
 def racesView: Scene = Scene {
-//    width: 1024
-//    height: 600
+    width: 1024
+    height: 600
     content: VBox {
         spacing: 2
         content: [racesList = ListView {
@@ -69,36 +70,67 @@ def racesView: Scene = Scene {
                                 text : "{cell.item}"
                             }
 
+                        }
                     }
                 }
+            },//ListView
+            Button {
+                text: "SELECT"
+                action: function() { stage.scene = raceView(races[racesList.selectedIndex]) }
+            },
+            Button {
+                text: "DELETE"
+                action: function() {
+                    delete races[racesList.selectedIndex];
+                }
+            },
+            Button {
+                text: "NEW"
+                action: function() { stage.scene = newRaceView; }
             }
-        },
-        Button {
-            text: "SELECT"
-            action: function() { stage.scene = raceView(races[racesList.selectedIndex]) }
-        },
-        Button {
-            text: "DELETE"
-        },
-        Button {
-            text: "NEW"
-            action: function() { stage.scene = newRaceView; }
-        }
-
-        ]
-    }
-
-        
+        ]//content
+    }//VBox
 }
 
 def newRaceView = Scene {
-    content: raceName = TextBox {
-        promptText: "Enter name for new race my lord"
-        action: function() {
-            races = [races, Race { name: raceName.text; }];
-            stage.scene = racesView;
-            }
-        }
+    content: HBox {
+        spacing: 5
+        content: [
+            VBox {
+                content: [
+                    raceNameInput = TextBox {
+                        promptText: "Name"
+                    },
+                    raceSpeedInput = TextBox {
+                        promptText: "Speed in km/h"
+                    }
+                ]//content
+            },//VBox
+            VBox {
+                content: [
+                    Button {
+                        text: "Submit"
+                        action: function() {
+                            var newRace = Race {
+                                name: raceNameInput.text
+                                targetAverageSpeed: Float.parseFloat(raceSpeedInput.text)
+                            }
+                            insert newRace into races;
+                            println("Race created");
+                            stage.scene = racesView;
+                        }
+                    },
+                    Button {
+                        text: "Cancel"
+                        action: function() {
+                            stage.scene = racesView;
+                        }
+                    }
+                ]//content
+            }//VBox
+        ]//content
+    }//HBox
+
 }
 
 
