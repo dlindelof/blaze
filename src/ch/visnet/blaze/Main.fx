@@ -17,6 +17,7 @@ import javafx.scene.control.TextBox;
 import java.io.Serializable;
 import javafx.scene.layout.VBox;
 import javafx.scene.layout.HBox;
+import javafx.scene.control.Label;
 
 class Race extends Serializable {
     var name: String;
@@ -28,23 +29,54 @@ class Race extends Serializable {
 
 var raceNameInput: TextBox;
 var raceSpeedInput: TextBox;
+var checkpointInput: TextBox;
 var racesList: ListView;
+var checkpointsList: ListView;
 
 function raceView(race: Race) {
     Scene {
         content: VBox {
             spacing: 2
             content: [
-                ListView {
+                checkpointsList = ListView {
                     items: bind race.checkpoints
                 },
-                raceSpeedInput = TextBox {
-                    text: bind "{race.targetAverageSpeed} km/h"
-                    action: function() {
-                        race.targetAverageSpeed = Float.parseFloat(raceSpeedInput.text);
-                        raceSpeedInput.text = "{race.targetAverageSpeed} km/h";
-                    }
+                HBox {
+                    content: [
+                        Label { text: "Speed [km/h]" },
+                        raceSpeedInput = TextBox {
+                            text: bind Float.toString(race.targetAverageSpeed)
+                            action: function() {
+                                race.targetAverageSpeed = Float.parseFloat(raceSpeedInput.text);
+                            }
+                        }
+                    ]
+                },
+                HBox {
+                    content: [
+                        Label { text: "New checkpoint [m]" },
+                        checkpointInput = TextBox {
+                            promptText: "new checkpoint"
+                            action: function() {
+                                insert Integer.parseInt(checkpointInput.text) into race.checkpoints;
+                            }
+
+                        }
+
+                    ]
+                },
+                Button {
+                    text: "Delete checkpoint",
+                    action: function() { println("UNIMPLEMENTED") }
+                },
+                Button {
+                    text: "RUN",
+                    action: function() { println("UNIMPLEMENTED") };
                 }
+
+
+
+
             ]
         }
     }
