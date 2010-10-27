@@ -18,6 +18,7 @@ import java.io.Serializable;
 import javafx.scene.layout.VBox;
 import javafx.scene.layout.HBox;
 import javafx.scene.control.Label;
+import javafx.util.Sequences;
 
 class Race extends Serializable {
     var name: String;
@@ -59,6 +60,7 @@ function raceView(race: Race) {
                             promptText: "new checkpoint"
                             action: function() {
                                 insert Integer.parseInt(checkpointInput.text) into race.checkpoints;
+                                race.checkpoints = Sequences.sort(race.checkpoints) as Integer[];
                             }
 
                         }
