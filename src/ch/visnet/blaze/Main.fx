@@ -67,7 +67,7 @@ function raceView(race: Race) {
                 },
                 Button {
                     text: "Delete checkpoint",
-                    action: function() { println("UNIMPLEMENTED") }
+                    action: function() { delete checkpointsList.selectedItem as Integer from race.checkpoints; }
                 },
                 Button {
                     text: "RUN",
