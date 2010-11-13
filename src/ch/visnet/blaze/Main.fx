@@ -40,47 +40,7 @@ class Race extends Serializable {
     var targetAverageSpeed: Float;
     var checkpoints: Integer[];
 
-    override function toString() { name }
-
-    function save(os: OutputStream) {
-        os.write(name.length());
-        for (char in name.toCharArray())
-            os.write(char);
-        os.write(Float.floatToIntBits(targetAverageSpeed));
-        os.write(checkpoints.size());
-        for (checkpoint in checkpoints)
-            os.write(checkpoint);
-    }
-
-
-    function writeObject(oos: ObjectOutputStream) {
-        println("Here");
-        var cpList = Arrays.asList(checkpoints);
-        oos.writeObject(name);
-        oos.writeFloat(targetAverageSpeed);
-        oos.writeObject(cpList);
-    }
-    function readObject(ois: ObjectInputStream) {
-        name = ois.readObject() as String;
-        targetAverageSpeed = ois.readFloat();
-        var cpList = ois.readObject() as ArrayList;
-        checkpoints = cpList.toArray() as Integer[];
-    }
-
 }
-
-    function load(is: DataInputStream) {
-        var nameBytes: Byte[];
-        var nbytes = is.readInt();
-        var i=0;
-        while (i<nbytes) nameBytes[i++] = is.readByte();
-        var name = new String(nameBytes);
-        return Race {
-            name: name
-        }
-
-    }
-
 
 var raceNameInput: TextBox;
 var raceSpeedInput: TextBox;
