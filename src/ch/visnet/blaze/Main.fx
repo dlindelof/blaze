@@ -19,6 +19,21 @@ import javafx.scene.layout.VBox;
 import javafx.scene.layout.HBox;
 import javafx.scene.control.Label;
 import javafx.util.Sequences;
+import java.util.Arrays;
+import javafx.io.Storage;
+import java.io.ObjectOutputStream;
+import java.io.ObjectInputStream;
+import java.util.ArrayList;
+import java.io.OutputStream;
+import java.io.DataInputStream;
+import java.io.File;
+import java.lang.System;
+import javax.naming.spi.DirectoryManager;
+import java.io.PrintWriter;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.BufferedReader;
+import java.io.FileReader;
 
 class Race extends Serializable {
     var name: String;
@@ -26,7 +41,46 @@ class Race extends Serializable {
     var checkpoints: Integer[];
 
     override function toString() { name }
+
+    function save(os: OutputStream) {
+        os.write(name.length());
+        for (char in name.toCharArray())
+            os.write(char);
+        os.write(Float.floatToIntBits(targetAverageSpeed));
+        os.write(checkpoints.size());
+        for (checkpoint in checkpoints)
+            os.write(checkpoint);
+    }
+
+
+    function writeObject(oos: ObjectOutputStream) {
+        println("Here");
+        var cpList = Arrays.asList(checkpoints);
+        oos.writeObject(name);
+        oos.writeFloat(targetAverageSpeed);
+        oos.writeObject(cpList);
+    }
+    function readObject(ois: ObjectInputStream) {
+        name = ois.readObject() as String;
+        targetAverageSpeed = ois.readFloat();
+        var cpList = ois.readObject() as ArrayList;
+        checkpoints = cpList.toArray() as Integer[];
+    }
+
 }
+
+    function load(is: DataInputStream) {
+        var nameBytes: Byte[];
+        var nbytes = is.readInt();
+        var i=0;
+        while (i<nbytes) nameBytes[i++] = is.readByte();
+        var name = new String(nameBytes);
+        return Race {
+            name: name
+        }
+
+    }
+
 
 var raceNameInput: TextBox;
 var raceSpeedInput: TextBox;
@@ -46,9 +100,11 @@ function raceView(race: Race) {
                     content: [
                         Label { text: "Speed [km/h]" },
                         raceSpeedInput = TextBox {
-                            text: bind Float.toString(race.targetAverageSpeed)
+                            text: Float.toString(race.targetAverageSpeed)
                             action: function() {
-                                race.targetAverageSpeed = Float.parseFloat(raceSpeedInput.text);
+                                race.targetAverageSpeed = Float.valueOf(raceSpeedInput.text);
+                                println("Im here");
+                                save(races);
                             }
                         }
                     ]
@@ -61,6 +117,7 @@ function raceView(race: Race) {
                             action: function() {
                                 insert Integer.parseInt(checkpointInput.text) into race.checkpoints;
                                 race.checkpoints = Sequences.sort(race.checkpoints) as Integer[];
+                                save(races);
                             }
 
                         }
@@ -69,7 +126,10 @@ function raceView(race: Race) {
                 },
                 Button {
                     text: "Delete checkpoint",
-                    action: function() { delete checkpointsList.selectedItem as Integer from race.checkpoints; }
+                    action: function() {
+                        delete checkpointsList.selectedItem as Integer from race.checkpoints;
+                        save(races);
+                    }
                 },
                 Button {
                     text: "RUN",
@@ -84,8 +144,8 @@ function raceView(race: Race) {
     }
 }
 
-var races: Race[];// = [Race { name: "Naples-Bordeaux", targetAverageSpeed: 50, checkpoints: [200] }];
-
+var races: Race[];
+load();
 
 def racesView: Scene = Scene {
     width: 1024
@@ -147,10 +207,11 @@ def newRaceView = Scene {
                         action: function() {
                             var newRace = Race {
                                 name: raceNameInput.text
-                                targetAverageSpeed: Float.parseFloat(raceSpeedInput.text)
+                                targetAverageSpeed: Float.valueOf(raceSpeedInput.text)
                             }
                             insert newRace into races;
                             println("Race created");
+                            save(races);
                             stage.scene = racesView;
                         }
                     },
@@ -166,6 +227,52 @@ def newRaceView = Scene {
     }//HBox
 
 }
+
+def userData = Storage {
+    source: "races.dat"
+}
+
+function save(races: Race[]) {
+    var userHome = System.getProperty("user.home");
+    var directory = new File("{userHome}{File.separator}.blaze");
+    directory.mkdir();
+    var racesFile = new File(directory, "races.data");
+    racesFile.delete();
+    racesFile.createNewFile();
+    var pw = new PrintWriter(new BufferedWriter(new FileWriter(racesFile)));
+    for (race in races){
+        pw.print("{race.name}:{race.targetAverageSpeed}");
+        for (checkpoint in race.checkpoints)
+            pw.print(":{checkpoint}");
+    }
+    pw.println();
+    pw.flush();
+    pw.close();
+}
+
+function load() {
+    var userHome = System.getProperty("user.home");
+    var directory = new File("{userHome}{File.separator}.blaze");
+    var racesFile = new File(directory, "races.data");
+    if (not racesFile.exists()) return;
+    var br = new BufferedReader(new FileReader(racesFile));
+    while (br.ready()) {
+        var string = br.readLine();
+        var elements = string.split(":") as String[];
+        var name = elements[0];
+        var speed = Float.valueOf(elements[1]);
+        var checkpoints: Integer[] = [];
+        for (checkpoint in elements[2..])
+            insert Float.valueOf(checkpoint) into checkpoints;
+        insert Race{
+            name : name
+            targetAverageSpeed: speed
+            checkpoints : checkpoints
+        } into races;
+    }
+    br.close();
+}
+
 
 
 var stage = Stage {
