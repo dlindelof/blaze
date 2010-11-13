@@ -40,11 +40,16 @@ class Race extends Serializable {
     var targetAverageSpeed: Float;
     var checkpoints: Integer[];
 
+    override function toString() { return name; }
 }
+
+var races: Race[];
+load();
 
 var raceNameInput: TextBox;
 var raceSpeedInput: TextBox;
 var checkpointInput: TextBox;
+var offsetInput: TextBox;
 var racesList: ListView;
 var checkpointsList: ListView;
 
@@ -84,6 +89,14 @@ function raceView(race: Race) {
 
                     ]
                 },
+                HBox {
+                    content: [
+                        Label { text: "Offset [m]" },
+                        offsetInput = TextBox {
+                            promptText: "offset"
+                        }
+                    ]
+                },
                 Button {
                     text: "Delete checkpoint",
                     action: function() {
@@ -95,17 +108,10 @@ function raceView(race: Race) {
                     text: "RUN",
                     action: function() { println("UNIMPLEMENTED") };
                 }
-
-
-
-
             ]
         }
     }
 }
-
-var races: Race[];
-load();
 
 def racesView: Scene = Scene {
     width: 1024
@@ -185,11 +191,6 @@ def newRaceView = Scene {
             }//VBox
         ]//content
     }//HBox
-
-}
-
-def userData = Storage {
-    source: "races.dat"
 }
 
 function save(races: Race[]) {
