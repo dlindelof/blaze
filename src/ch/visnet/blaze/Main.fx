@@ -68,6 +68,7 @@ var thisRace: Race;
 var nextCheckpointIndex = 0;
 var raceStartMillis: Long;
 var raceOffset: Integer;
+var distanceRemaining: Integer;
 
 def countDownFile = Media { source: "file:{System.getProperty("user.home")}/projects/blaze/src/ch/visnet/blaze/CountDownFrom10.mp3" }
 def countDown = MediaPlayer { media: countDownFile }
@@ -137,6 +138,7 @@ function raceView(race: Race) {
                         thisRace = race;
                         raceStartMillis = System.currentTimeMillis();
                         raceOffset = Integer.valueOf(offsetInput.text);
+                        displayedDistanceText.visible = true;
                         clock.play();
                         stage.scene = runningView;
                     };
@@ -259,6 +261,19 @@ function updateClock(millis: Long) {
     currImgs[5] = images[Integer.parseInt(mmssSSS.substring(5, 6))];
 }
 
+def displayedDistanceText = Text {
+    x: 100
+    y: 400
+    content: bind "{distanceRemaining} m"
+    fill: Color.GREEN
+    font : Font {
+        size: 40
+        name: "Courier"
+    }
+    visible: true;
+}
+
+
 def runningView = Scene {
     content: [
         Rectangle {
@@ -286,7 +301,8 @@ def runningView = Scene {
                 ImageView { image: bind currImgs[4] },
                 ImageView { image: bind currImgs[5] }
             ]
-        }
+        },
+        displayedDistanceText
     ]
 }
 
@@ -297,14 +313,16 @@ var clock : Timeline = Timeline {
         KeyFrame {
             time: 47ms
             action: function () {
-                var distanceToDisplay = computeDistanceToDisplay(thisRace);
-                if (distanceToDisplay > 0) {
-                    var timeToDisplay = distanceToDisplay / (thisRace.targetAverageSpeed / 3.6 / 1000) as Long;
+                distanceRemaining = computeDistanceToDisplay(thisRace);
+                if (distanceRemaining >= 0) {
+                    var timeToDisplay = distanceRemaining / (thisRace.targetAverageSpeed / 3.6 / 1000) as Long;
                     updateClock(timeToDisplay);
                     if (isLessThanCountDownDuration(timeToDisplay)) {
                         countDown.play();
                     }
                 } else {
+                    distanceRemaining = 0;
+                    displayedDistanceText.visible = false;
                     resetClock();
                 }
                 //updateDisplayedDistance(distanceToDisplay);
