@@ -34,6 +34,13 @@ import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.BufferedReader;
 import java.io.FileReader;
+import javafx.scene.shape.Rectangle;
+import javafx.scene.paint.Color;
+import javafx.scene.input.MouseEvent;
+import javafx.animation.Timeline;
+import javafx.animation.KeyFrame;
+import javafx.scene.media.Media;
+import javafx.scene.media.MediaPlayer;
 
 class Race extends Serializable {
     var name: String;
@@ -52,6 +59,17 @@ var checkpointInput: TextBox;
 var offsetInput: TextBox;
 var racesList: ListView;
 var checkpointsList: ListView;
+var thisRace: Race;
+
+var nextCheckpointIndex = 0;
+var raceStartMillis: Long;
+var raceOffset: Integer;
+
+def countDownFile = Media { source: "file:{System.getProperty("user.home")}/projects/Blaze/CountDownFrom10.mp3" }
+def countDown = MediaPlayer { media: countDownFile }
+def countDownDuration = 11000; // make 'o' of 'zero' coincide with countdown 0
+function isLessThanCountDownDuration(duration: Integer) { return duration < countDownDuration; }
+
 
 function raceView(race: Race) {
     Scene {
@@ -106,7 +124,10 @@ function raceView(race: Race) {
                 },
                 Button {
                     text: "RUN",
-                    action: function() { println("UNIMPLEMENTED") };
+                    action: function() {
+                        thisRace = race;
+                        stage.scene = runningView;
+                    };
                 }
             ]
         }
@@ -140,13 +161,14 @@ def racesView: Scene = Scene {
             },
             Button {
                 text: "DELETE"
-                action: function() {
-                    delete races[racesList.selectedIndex];
-                }
+                action: function() { delete races[racesList.selectedIndex]; save(races); }
             },
             Button {
                 text: "NEW"
-                action: function() { stage.scene = newRaceView; }
+                action: function() {
+                    stage.scene = newRaceView;
+                    clock.play();
+                }
             }
         ]//content
     }//VBox
@@ -192,6 +214,50 @@ def newRaceView = Scene {
         ]//content
     }//HBox
 }
+
+def runningView = Scene {
+    content: [
+        Rectangle {
+            width: 1024
+            height: 600
+            fill: Color.BLACK
+            onMouseReleased: function (e: MouseEvent) {
+                nextCheckpointIndex = 0;
+                stage.scene = racesView;
+            }
+        }
+    ]
+
+}
+
+
+var clock : Timeline = Timeline {
+    repeatCount: Timeline.INDEFINITE
+    keyFrames:
+        KeyFrame {
+            time: 47ms
+            action: function () {
+                var distanceToDisplay = computeDistanceToDisplay(thisRace);
+                var timeToDisplay = computeTimeToDisplay(thisRace);
+                updateDisplayedDistance(distanceToDisplay);
+                updateDisplayedTime(timeToDisplay);
+                if (isLessThanCountDownDuration(timeToDisplay)) {
+                    countDown.play();
+                }
+            }
+        }
+    }
+
+function computeDistanceToDisplay(race: Race) {
+    var now = System.currentTimeMillis();
+    var elapsed = now - raceStartMillis;
+    var result = race.checkpoints[nextCheckpointIndex] - elapsed * race.targetAverageSpeed * 3.6 / 1000 - raceOffset;
+    if (result < 0) {
+        nextCheckpointIndex
+    }
+
+}
+
 
 function save(races: Race[]) {
     var userHome = System.getProperty("user.home");
