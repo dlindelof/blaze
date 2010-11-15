@@ -41,6 +41,10 @@ import javafx.animation.Timeline;
 import javafx.animation.KeyFrame;
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
+import javafx.scene.layout.Flow;
+import javafx.scene.image.ImageView;
+import javafx.scene.image.Image;
+import java.text.SimpleDateFormat;
 
 class Race extends Serializable {
     var name: String;
@@ -65,7 +69,7 @@ var nextCheckpointIndex = 0;
 var raceStartMillis: Long;
 var raceOffset: Integer;
 
-def countDownFile = Media { source: "file:{System.getProperty("user.home")}/projects/Blaze/CountDownFrom10.mp3" }
+def countDownFile = Media { source: "file:{System.getProperty("user.home")}/projects/blaze/src/ch/visnet/blaze/CountDownFrom10.mp3" }
 def countDown = MediaPlayer { media: countDownFile }
 def countDownDuration = 11000; // make 'o' of 'zero' coincide with countdown 0
 function isLessThanCountDownDuration(duration: Integer) { return duration < countDownDuration; }
@@ -112,6 +116,7 @@ function raceView(race: Race) {
                         Label { text: "Offset [m]" },
                         offsetInput = TextBox {
                             promptText: "offset"
+                            text: "0"
                         }
                     ]
                 },
@@ -123,9 +128,16 @@ function raceView(race: Race) {
                     }
                 },
                 Button {
+                    text: "BACK",
+                    action: function() { stage.scene = racesView; }
+                },
+                Button {
                     text: "RUN",
                     action: function() {
                         thisRace = race;
+                        raceStartMillis = System.currentTimeMillis();
+                        raceOffset = Integer.valueOf(offsetInput.text);
+                        clock.play();
                         stage.scene = runningView;
                     };
                 }
@@ -167,7 +179,6 @@ def racesView: Scene = Scene {
                 text: "NEW"
                 action: function() {
                     stage.scene = newRaceView;
-                    clock.play();
                 }
             }
         ]//content
@@ -215,6 +226,39 @@ def newRaceView = Scene {
     }//HBox
 }
 
+def images: Image[] = for (i in [0..11]) {
+            Image {
+                url: "{__DIR__}{i}.png"
+                height: 200
+                preserveRatio: true}
+                }
+
+var currImgs: Image[];
+resetClock();
+
+function resetClock() {
+    currImgs[0] = images[8];
+    currImgs[1] = images[8];
+    currImgs[2] = images[8];
+    currImgs[3] = images[8];
+    currImgs[4] = images[8];
+    currImgs[5] = images[8];
+    currImgs[6] = images[10];
+    currImgs[7] = images[11];
+}
+
+def sdf = new SimpleDateFormat("mmssSSS");
+function updateClock(millis: Long) {
+    def mmssSSS = sdf.format(millis);
+    // Finally, map strings to images
+    currImgs[0] = images[Integer.parseInt(mmssSSS.substring(0, 1))];
+    currImgs[1] = images[Integer.parseInt(mmssSSS.substring(1, 2))];
+    currImgs[2] = images[Integer.parseInt(mmssSSS.substring(2, 3))];
+    currImgs[3] = images[Integer.parseInt(mmssSSS.substring(3, 4))];
+    currImgs[4] = images[Integer.parseInt(mmssSSS.substring(4, 5))];
+    currImgs[5] = images[Integer.parseInt(mmssSSS.substring(5, 6))];
+}
+
 def runningView = Scene {
     content: [
         Rectangle {
@@ -223,11 +267,27 @@ def runningView = Scene {
             fill: Color.BLACK
             onMouseReleased: function (e: MouseEvent) {
                 nextCheckpointIndex = 0;
+                clock.stop();
                 stage.scene = racesView;
             }
+        },
+        Flow {
+            hgap: 8
+            layoutX: 150
+            layoutY: 150
+            wrapLength: 1000
+            content: [
+                ImageView { image: bind currImgs[0] },
+                ImageView { image: bind currImgs[1] },
+                ImageView { image: bind currImgs[6] }, // LED dots
+                ImageView { image: bind currImgs[2] },
+                ImageView { image: bind currImgs[3] },
+                ImageView { image: bind currImgs[7] }, // LED period
+                ImageView { image: bind currImgs[4] },
+                ImageView { image: bind currImgs[5] }
+            ]
         }
     ]
-
 }
 
 
@@ -238,24 +298,33 @@ var clock : Timeline = Timeline {
             time: 47ms
             action: function () {
                 var distanceToDisplay = computeDistanceToDisplay(thisRace);
-                var timeToDisplay = computeTimeToDisplay(thisRace);
-                updateDisplayedDistance(distanceToDisplay);
-                updateDisplayedTime(timeToDisplay);
-                if (isLessThanCountDownDuration(timeToDisplay)) {
-                    countDown.play();
+                if (distanceToDisplay > 0) {
+                    var timeToDisplay = distanceToDisplay / (thisRace.targetAverageSpeed / 3.6 / 1000) as Long;
+                    updateClock(timeToDisplay);
+                    if (isLessThanCountDownDuration(timeToDisplay)) {
+                        countDown.play();
+                    }
+                } else {
+                    resetClock();
                 }
+                //updateDisplayedDistance(distanceToDisplay);
             }
         }
     }
 
-function computeDistanceToDisplay(race: Race) {
+function computeDistanceToDisplay(race: Race): Integer {
     var now = System.currentTimeMillis();
     var elapsed = now - raceStartMillis;
-    var result = race.checkpoints[nextCheckpointIndex] - elapsed * race.targetAverageSpeed * 3.6 / 1000 - raceOffset;
+    var result = race.checkpoints[nextCheckpointIndex] - elapsed * race.targetAverageSpeed / 3.6 / 1000 - raceOffset;
     if (result < 0) {
-        nextCheckpointIndex
+        nextCheckpointIndex++;
+        if (nextCheckpointIndex < race.checkpoints.size())
+            return race.checkpoints[nextCheckpointIndex]
+        else
+            return -1;
+    } else {
+        return result;
     }
-
 }
 
 
