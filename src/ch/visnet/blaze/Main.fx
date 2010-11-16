@@ -263,11 +263,11 @@ function updateClock(millis: Long) {
 
 def displayedDistanceText = Text {
     x: 100
-    y: 400
-    content: bind "{distanceRemaining} m"
+    y: 450
+    content: bind "Checkpoint {nextCheckpointIndex+1}: {distanceRemaining} m"
     fill: Color.GREEN
     font : Font {
-        size: 40
+        size: 50
         name: "Courier"
     }
     visible: true;
@@ -319,7 +319,8 @@ var clock : Timeline = Timeline {
                     updateClock(timeToDisplay);
                     if (isLessThanCountDownDuration(timeToDisplay)) {
                         countDown.play();
-                    }
+                    } else
+                        countDown.stop();
                 } else {
                     distanceRemaining = 0;
                     displayedDistanceText.visible = false;
