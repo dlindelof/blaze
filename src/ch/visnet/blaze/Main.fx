@@ -83,12 +83,29 @@ function raceView(race: Race) {
             content: [
                 checkpointsList = ListView {
                     items: bind race.checkpoints
+                    cellFactory: function() {
+                        def cell: ListCell = ListCell {
+                            onUpdate: function() {
+                                if (cell.item == null)
+                                    cell.node = null
+                                else
+                                    cell.node = Label {
+                                        font: Font { size: 30 }
+                                        text : "{cell.item}"
+                                    }
+                                }
+                            }
+                        }
                 },
                 HBox {
                     content: [
-                        Label { text: "Speed [km/h]" },
+                        Label { 
+                            text: "Speed [km/h]"
+                            font: Font { size: 30 }
+                        },
                         raceSpeedInput = TextBox {
                             text: Float.toString(race.targetAverageSpeed)
+                            font: Font { size: 30 }
                             action: function() {
                                 race.targetAverageSpeed = Float.valueOf(raceSpeedInput.text);
                                 println("Im here");
@@ -99,9 +116,12 @@ function raceView(race: Race) {
                 },
                 HBox {
                     content: [
-                        Label { text: "New checkpoint [m]" },
+                        Label { text: "New checkpoint [m]"
+                                font: Font { size: 30 }
+                        },
                         checkpointInput = TextBox {
                             promptText: "new checkpoint"
+                            font: Font { size: 30 }
                             action: function() {
                                 insert Integer.parseInt(checkpointInput.text) into race.checkpoints;
                                 race.checkpoints = Sequences.sort(race.checkpoints) as Integer[];
@@ -114,15 +134,20 @@ function raceView(race: Race) {
                 },
                 HBox {
                     content: [
-                        Label { text: "Offset [m]" },
+                        Label { 
+                            text: "Offset [m]"
+                            font: Font { size: 30 }
+                        },
                         offsetInput = TextBox {
                             promptText: "offset"
                             text: "0"
+                            font: Font { size: 30 }
                         }
                     ]
                 },
                 Button {
                     text: "Delete checkpoint",
+                    font: Font { size: 30 }
                     action: function() {
                         delete checkpointsList.selectedItem as Integer from race.checkpoints;
                         save(races);
@@ -130,10 +155,12 @@ function raceView(race: Race) {
                 },
                 Button {
                     text: "BACK",
+                    font: Font { size: 30 }
                     action: function() { stage.scene = racesView; }
                 },
                 Button {
                     text: "RUN",
+                    font: Font { size: 30 }
                     action: function() {
                         thisRace = race;
                         raceStartMillis = System.currentTimeMillis();
@@ -149,8 +176,6 @@ function raceView(race: Race) {
 }
 
 def racesView: Scene = Scene {
-    width: 1024
-    height: 600
     content: VBox {
         spacing: 2
         content: [racesList = ListView {
@@ -161,7 +186,8 @@ def racesView: Scene = Scene {
                         if (cell.item == null)
                             cell.node = null
                         else
-                            cell.node = CheckBox {
+                            cell.node = Label {
+                                font: Font { size: 30 }
                                 text : "{cell.item}"
                             }
 
@@ -171,18 +197,27 @@ def racesView: Scene = Scene {
             },//ListView
             Button {
                 text: "SELECT"
+                font: Font { size: 30 }
                 action: function() { stage.scene = raceView(races[racesList.selectedIndex]) }
             },
             Button {
                 text: "DELETE"
+                font: Font { size: 30 }
                 action: function() { delete races[racesList.selectedIndex]; save(races); }
             },
             Button {
                 text: "NEW"
+                font: Font { size: 30 }
                 action: function() {
                     stage.scene = newRaceView;
                 }
+            },
+            Button {
+                text: "QUIT"
+                font: Font { size: 30 }
+                action: function() { System.exit(0); }
             }
+
         ]//content
     }//VBox
 }
@@ -194,9 +229,11 @@ def newRaceView = Scene {
             VBox {
                 content: [
                     raceNameInput = TextBox {
+                        font: Font { size: 30 }
                         promptText: "Name"
                     },
                     raceSpeedInput = TextBox {
+                        font: Font { size: 30 }
                         promptText: "Speed in km/h"
                     }
                 ]//content
@@ -205,6 +242,7 @@ def newRaceView = Scene {
                 content: [
                     Button {
                         text: "Submit"
+                        font: Font { size: 30 }
                         action: function() {
                             var newRace = Race {
                                 name: raceNameInput.text
@@ -218,6 +256,7 @@ def newRaceView = Scene {
                     },
                     Button {
                         text: "Cancel"
+                        font: Font { size: 30 }
                         action: function() {
                             stage.scene = racesView;
                         }
@@ -392,6 +431,8 @@ function load() {
 
 var stage = Stage {
     title: "Blaze"
+    width: 500
+    height: 700
 //    fullScreen: true
     scene: racesView
 }
