@@ -322,6 +322,7 @@ def runningView = Scene {
             onMouseReleased: function (e: MouseEvent) {
                 nextCheckpointIndex = 0;
                 clock.stop();
+                countDown.stop();
                 stage.scene = racesView;
             }
         },
