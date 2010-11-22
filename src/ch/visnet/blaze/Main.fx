@@ -399,8 +399,8 @@ function save(races: Race[]) {
         pw.print("{race.name}:{race.targetAverageSpeed}");
         for (checkpoint in race.checkpoints)
             pw.print(":{checkpoint}");
+        pw.println();
     }
-    pw.println();
     pw.flush();
     pw.close();
 }
