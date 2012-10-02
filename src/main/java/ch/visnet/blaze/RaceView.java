@@ -7,7 +7,6 @@ import javafx.beans.property.LongProperty;
 import javafx.beans.property.SimpleLongProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
-import javafx.beans.value.WritableValue;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
@@ -24,7 +23,6 @@ import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
-import javafx.scene.text.TextAlignment;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
@@ -34,29 +32,30 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class RaceView {
+  private Stage stage;
+  private Scene parent;
   private Image[] digits = new Image[10];
   private ImageView[] clock = new ImageView[7];
   private ImageView[] odo = new ImageView[6];
-  private Image colon;
-  private Image dot;
   private Race race;
   private Timeline raceTimeline = new Timeline();
   private Checkpoint nextCheckpoint;
   private LongProperty elapsedTime = new SimpleLongProperty();
   private SimpleDateFormat sdf = new SimpleDateFormat("mm:ss.S");
   private DecimalFormat df = new DecimalFormat("00,000");
-  private final String PKG = "ch/visnet/blaze/";
   private MediaPlayer countdown = new MediaPlayer(new Media("file:" + System.getProperty("user.home") + "/.blaze/res/" + "CountDownFrom10.mp3"));
   private LongProperty elapsedDistance = new SimpleLongProperty();
   private Label checkpointId = new Label();
 
-  public RaceView(Stage stage, Race race) {
+  public RaceView(Stage stage, Scene parent, Race race) {
     this.race = race;
+    this.stage = stage;
+    this.parent = parent;
     for (int i=0;i<digits.length;i++) {
-      digits[i] = new Image(PKG + i + ".png");
+      digits[i] = new Image(i + ".png");
     }
-    colon = new Image(PKG + 10 + ".png");
-    dot = new Image(PKG + 11 + ".png");
+    Image colon = new Image(10 + ".png");
+    Image dot = new Image(11 + ".png");
     for (int i=0;i<clock.length;i++)
       clock[i] = new ImageView(digits[8]);
     clock[2].setImage(colon);
@@ -94,10 +93,9 @@ public class RaceView {
       }
     });
     checkpointId.setText("1");
-    checkpointId.setFont(new Font(100));
+    checkpointId.setFont(new Font(200));
     checkpointId.setAlignment(Pos.CENTER_RIGHT);
-    checkpointId.setTextFill(Color.RED);
-  }
+   }
 
 
   public Scene build() {
@@ -118,13 +116,20 @@ public class RaceView {
     odoBox.getChildren().addAll(odo);
     odoBox.setAlignment(Pos.BASELINE_RIGHT);
     digitsColumn.getChildren().add(odoBox);
-    Scene scene = new Scene(main, 600, 400, Color.BLACK);
+    Scene scene = new Scene(main, 600, 400);
     scene.setOnKeyPressed(new EventHandler<KeyEvent>() {
       public void handle(KeyEvent keyEvent) {
-        if (keyEvent.getCode() != KeyCode.SPACE)
-          return;
-        nextCheckpoint = race.getCheckpoints().first();
-        raceTimeline.play();
+        if (keyEvent.getCode() != KeyCode.SPACE) return;
+        switch (raceTimeline.getStatus()) {
+          case STOPPED:
+            nextCheckpoint = race.getCheckpoints().first();
+            raceTimeline.play();
+            break;
+          case RUNNING:
+            countdown.stop();
+            stage.setScene(parent);
+            break;
+        }
       }
     });
     return scene;
@@ -132,8 +137,7 @@ public class RaceView {
 
   Label makeDigitsLabel(String text) {
     Label result = new Label(text);
-    result.setTextFill(Color.RED);
-    result.setFont(new Font(30));
+    result.setFont(new Font(60));
     return result;
   }
 

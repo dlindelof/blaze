@@ -38,19 +38,20 @@ public class MainView {
     border.setCenter(centerPane());
     // Right
     Button runButton = new Button("RUN");
-    runButton.setOnAction(new EventHandler<ActionEvent>() {
-      public void handle(ActionEvent actionEvent) {
-        if (selectedRace == null) return;
-        stage.setScene(new RaceView(stage, selectedRace.get()).build());
-      }
-    });
     VBox rightPane = new VBox();
     rightPane.getChildren().add(runButton);
     border.setRight(rightPane);
     // Bottom
     border.setBottom(messages);
     loadRaces();
-    return new Scene(border, 600, 400);
+    final Scene result = new Scene(border, 600, 400);
+    runButton.setOnAction(new EventHandler<ActionEvent>() {
+      public void handle(ActionEvent actionEvent) {
+        if (selectedRace == null || selectedRace.get() == null) return;
+        stage.setScene(new RaceView(stage, result, selectedRace.get()).build());
+      }
+    });
+    return result;
   }
 
   Node leftPane() {
