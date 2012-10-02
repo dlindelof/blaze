@@ -10,7 +10,7 @@ public class Blaze extends Application {
     public void start(Stage stage) {
         Scene scene = new MainView().build(stage);
         stage.setScene(scene);
-        stage.setTitle("Toison");
+        stage.setTitle("Blaze");
         stage.setFullScreen(true);
         stage.show();
     }
