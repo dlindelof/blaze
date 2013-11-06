@@ -21,7 +21,6 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
-import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
 import javafx.util.Duration;
@@ -49,8 +48,8 @@ public class RaceView {
 
   public RaceView(Stage stage, Scene parent, Race race) {
     this.race = race;
-    this.stage = stage;
     this.parent = parent;
+    this.stage = stage;
     for (int i=0;i<digits.length;i++) {
       digits[i] = new Image(i + ".png");
     }
@@ -95,6 +94,8 @@ public class RaceView {
     checkpointId.setText("1");
     checkpointId.setFont(new Font(200));
     checkpointId.setAlignment(Pos.CENTER_RIGHT);
+    stage.setScene(build());
+    stage.setFullScreen(true);
    }
 
 
@@ -122,11 +123,12 @@ public class RaceView {
         if (keyEvent.getCode() != KeyCode.SPACE) return;
         switch (raceTimeline.getStatus()) {
           case STOPPED:
-            nextCheckpoint = race.getCheckpoints().first();
+            nextCheckpoint = race.first();
             raceTimeline.play();
             break;
           case RUNNING:
             countdown.stop();
+            stage.setFullScreen(false);
             stage.setScene(parent);
             break;
         }

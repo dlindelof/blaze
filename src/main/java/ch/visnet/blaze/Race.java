@@ -1,14 +1,22 @@
 package ch.visnet.blaze;
 
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.Serializable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 public class Race implements Serializable {
   static final int DEFAULT_SPEED = 55;
 
-  final String name;
-  private SortedSet<Checkpoint> checkpoints = new TreeSet<Checkpoint>();
-  private List<Leg> legs = new ArrayList<Leg>();
+  private String name;
+  private ObservableList<Checkpoint> checkpoints = FXCollections.observableArrayList();
+  private List<Leg> legs = new ArrayList<>();
 
   public Race(String name) {
     this.name = name;
@@ -29,19 +37,23 @@ public class Race implements Serializable {
   }
 
   private void addCheckpoint(Checkpoint checkpoint) {
-    for (Checkpoint cp : checkpoints) {
-      if (cp.compareTo(checkpoint) >= 0) {
-        if (cp.compareTo(checkpoint) == 0)
-          checkpoints.remove(cp);
-        break;
-      }
-    }
+    if (checkpoints.contains(checkpoint))
+      checkpoints.remove(checkpoint);
     checkpoints.add(checkpoint);
     updateCheckpoints();
     updateLegs();
   }
 
+  public Checkpoint first() {
+    return checkpoints.get(0);
+  }
+
+  public Checkpoint last() {
+    return checkpoints.get(checkpoints.size() - 1);
+  }
+
   private void updateCheckpoints() {
+    FXCollections.sort(checkpoints);
     Iterator<Checkpoint> it = checkpoints.iterator();
     Checkpoint previousCP = null;
     int id = 1;
@@ -80,20 +92,12 @@ public class Race implements Serializable {
     return -1; // cannot happen
   }
 
-  public SortedSet<Checkpoint> getCheckpoints() {
-    return Collections.unmodifiableSortedSet(checkpoints);
+  public ObservableList<Checkpoint> getCheckpoints() {
+    return FXCollections.unmodifiableObservableList(checkpoints);
   }
 
   public void removeCheckpoint(int position) {
-    Checkpoint cpToRemove = null;
-    for (Checkpoint cp : checkpoints) {
-      if (cp.getPosition() == position) {
-        cpToRemove = cp;
-        break;
-      }
-    }
-    if (null != cpToRemove)
-      checkpoints.remove(cpToRemove);
+    checkpoints.remove(new Checkpoint(position));
   }
 
   public long getTotalTime() {
@@ -103,11 +107,26 @@ public class Race implements Serializable {
     return result;
   }
 
+  private void writeObject(ObjectOutputStream oos) throws IOException {
+    List serializableCheckpoints = new ArrayList(checkpoints);
+    oos.writeObject(name);
+    oos.writeObject(serializableCheckpoints);
+  }
+
+  private void readObject(ObjectInputStream ois) throws IOException, ClassNotFoundException {
+    List deserializedCheckpoints;
+    name = (String)ois.readObject();
+    deserializedCheckpoints = (ArrayList)ois.readObject();
+    checkpoints = FXCollections.observableList(deserializedCheckpoints);
+    legs = new ArrayList<>();
+    updateCheckpoints();
+    updateLegs();
+  }
+
   private class Leg implements Serializable {
     private int distance;
     private int speed;
     private long duration;
-    private Checkpoint end;
 
     Leg(Checkpoint start, Checkpoint end) {
       speed = start.getSpeed();
@@ -119,9 +138,6 @@ public class Race implements Serializable {
       return duration;
     }
 
-    public Checkpoint getEnd() {
-      return end;
-    }
   }
 
 }

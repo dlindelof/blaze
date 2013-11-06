@@ -1,14 +1,11 @@
 package ch.visnet.blaze;
 
-import junit.framework.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.io.*;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
-import java.util.SortedSet;
 
 import static junit.framework.Assert.assertEquals;
 
@@ -59,15 +56,15 @@ public class RaceTest {
 
   @Test
   public void canGetCollectionOfCheckpoints() {
-    SortedSet<Checkpoint> checkpoints;
+    List<Checkpoint> checkpoints;
     race.addCheckpoint(0, 55);
     race.addCheckpoint(1200);
     race.addCheckpoint(123);
     checkpoints = race.getCheckpoints();
     assertEquals(3, checkpoints.size());
-    assertEquals(0, checkpoints.first().getPosition());
-    assertEquals(1200, checkpoints.last().getPosition());
-    assertEquals(55, checkpoints.last().getSpeed());
+    assertEquals(0, race.first().getPosition());
+    assertEquals(1200, race.last().getPosition());
+    assertEquals(55, race.last().getSpeed());
   }
 
   @Test
@@ -83,7 +80,6 @@ public class RaceTest {
   public void aRace_canBeSerialized() throws IOException, ClassNotFoundException {
     ByteArrayOutputStream bos = new ByteArrayOutputStream();
     ObjectOutputStream oos = new ObjectOutputStream(bos);
-    ObjectInputStream ois;
     Race newRace;
     race.addCheckpoint(1000, 60);
     race.addCheckpoint(2000, 40);

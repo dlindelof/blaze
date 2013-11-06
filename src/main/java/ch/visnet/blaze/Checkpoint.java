@@ -22,6 +22,12 @@ class Checkpoint implements Comparable<Checkpoint>, Serializable {
     return this.position < checkpoint.position ? -1 : this.position > checkpoint.position ? 1 : 0;
   }
 
+  @Override
+  public boolean equals(Object that) {
+    if (that == null) return false;
+    return this.getClass() == that.getClass() && this.position == ((Checkpoint) that).position;
+  }
+
   public int getSpeed() {
     return speed < 0 ? previous.getSpeed() : speed;
   }

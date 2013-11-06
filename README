@@ -1,0 +1,36 @@
+UC-01 Initial startup
+---------------------
+
+- Ensure the `~/.blaze' directory doesn't exist.
+- Start the program with `java -jar blaze.jar'.
+- Create a race.
+- Close it.
+- Check that `~/.blaze exists and contains the .mp3 and races.dat'
+- Start again.
+- Check that the race you created earlier still exists.
+
+
+UC-02 Edit a race
+-----------------
+
+- Select a race
+- Add a few checkpoint and speed changes
+- Change at least one position
+- Delete a checkpoint
+- Close the app
+- Re-open it
+- Check the race has the new checkpoints
+
+Extensions
+~~~~~~~~~~
+
+- Insert position before selecting any race
+- Chech that no exceptions are thrown and that an error dialog shows up
+
+ 
+UC-03 Run a race
+----------------
+
+- Select a race
+- Cick Run
+
