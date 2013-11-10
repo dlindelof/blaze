@@ -1,5 +1,6 @@
 package ch.visnet.blaze;
 
+import javafx.animation.Animation;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
@@ -29,22 +30,26 @@ import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.TimeZone;
 
 public class RaceView {
   private Stage stage;
   private Scene parent;
   private Image[] digits = new Image[10];
   private ImageView[] clock = new ImageView[7];
-  private ImageView[] odo = new ImageView[6];
+  private ImageView[] odo   = new ImageView[6];
+  private ImageView[] timer = new ImageView[7];
   private Race race;
   private Timeline raceTimeline = new Timeline();
   private Checkpoint nextCheckpoint;
   private LongProperty elapsedTime = new SimpleLongProperty();
   private SimpleDateFormat sdf = new SimpleDateFormat("mm:ss.S");
   private DecimalFormat df = new DecimalFormat("00,000");
+  private SimpleDateFormat timerdf = new SimpleDateFormat("H:mm:ss");
   private MediaPlayer countdown = new MediaPlayer(new Media("file:" + System.getProperty("user.home") + "/.blaze/res/" + "CountDownFrom10.mp3"));
   private LongProperty elapsedDistance = new SimpleLongProperty();
   private Label checkpointId = new Label();
+  private boolean raceOver = false;
 
   public RaceView(Stage stage, Scene parent, Race race) {
     this.race = race;
@@ -62,7 +67,18 @@ public class RaceView {
     for (int i=0;i<odo.length;i++)
       odo[i] = new ImageView(digits[8]);
     odo[2].setImage(dot);
+    for (int i=0;i<timer.length;i++)
+      timer[i] = new ImageView(digits[8]);
+    timerdf.setTimeZone(TimeZone.getTimeZone("UTC"));
+    timer[1].setImage(colon);
+    timer[4].setImage(colon);
     raceTimeline.getKeyFrames().addAll(raceKeyFrame());
+    raceTimeline.setOnFinished(new EventHandler<ActionEvent>() {
+      @Override
+      public void handle(ActionEvent actionEvent) {
+        raceOver = true;
+      }
+    });
     elapsedTime.addListener(new ChangeListener<Number>() {
       public void changed(ObservableValue<? extends Number> observableValue, Number _, Number newElapsedTime) {
         long timeToNextCheckpoint = nextCheckpoint.getTimeOfPassage() - newElapsedTime.longValue();
@@ -79,6 +95,17 @@ public class RaceView {
         clock[3].setImage(digits[time[3] - 48]);
         clock[4].setImage(digits[time[4] - 48]);
         clock[6].setImage(digits[time[6] - 48]);
+      }
+    });
+    elapsedTime.addListener(new ChangeListener<Number>() {
+      @Override
+      public void changed(ObservableValue<? extends Number> observableValue, Number _, Number newElapsedTime) {
+        char[] time = timerdf.format(newElapsedTime.longValue()).toCharArray();
+        timer[0].setImage(digits[time[0] - 48]);
+        timer[2].setImage(digits[time[2] - 48]);
+        timer[3].setImage(digits[time[3] - 48]);
+        timer[5].setImage(digits[time[5] - 48]);
+        timer[6].setImage(digits[time[6] - 48]);
       }
     });
     elapsedDistance.addListener(new ChangeListener<Number>() {
@@ -104,33 +131,36 @@ public class RaceView {
     //main.setAlignment(Pos.CENTER);
     main.getChildren().add(checkpointId);
     HBox.setMargin(checkpointId, new Insets(20));
-    VBox digitsColumn = new VBox(10);
+    VBox digitsColumn = new VBox(20);
     main.getChildren().add(digitsColumn);
     digitsColumn.setAlignment(Pos.BASELINE_RIGHT);
-    digitsColumn.getChildren().add(makeDigitsLabel("Temps restant"));
-    HBox clockBox = new HBox();
+    digitsColumn.getChildren().add(makeDigitsLabel("Temps restant [mm:ss.s]"));
+    HBox clockBox = new HBox(8);
     clockBox.getChildren().addAll(clock);
     clockBox.setAlignment(Pos.BASELINE_RIGHT);
     digitsColumn.getChildren().add(clockBox);
-    digitsColumn.getChildren().add(makeDigitsLabel("Distance totale"));
-    HBox odoBox = new HBox();
+    digitsColumn.getChildren().add(makeDigitsLabel("Distance totale [km]"));
+    HBox odoBox = new HBox(8);
     odoBox.getChildren().addAll(odo);
     odoBox.setAlignment(Pos.BASELINE_RIGHT);
     digitsColumn.getChildren().add(odoBox);
+    digitsColumn.getChildren().add(makeDigitsLabel("Temps total [h:mm:ss]"));
+    HBox timerBox = new HBox(8);
+    timerBox.getChildren().addAll(timer);
+    timerBox.setAlignment(Pos.BASELINE_RIGHT);
+    digitsColumn.getChildren().add(timerBox);
     Scene scene = new Scene(main, 600, 400);
     scene.setOnKeyPressed(new EventHandler<KeyEvent>() {
       public void handle(KeyEvent keyEvent) {
         if (keyEvent.getCode() != KeyCode.SPACE) return;
-        switch (raceTimeline.getStatus()) {
-          case STOPPED:
-            nextCheckpoint = race.first();
-            raceTimeline.play();
-            break;
-          case RUNNING:
-            countdown.stop();
-            stage.setFullScreen(false);
-            stage.setScene(parent);
-            break;
+        if (raceTimeline.getStatus() == Animation.Status.STOPPED && !raceOver) {
+          nextCheckpoint = race.first();
+          raceTimeline.play();
+        } else {
+          raceTimeline.stop();
+          countdown.stop();
+          stage.setFullScreen(false);
+          stage.setScene(parent);
         }
       }
     });
