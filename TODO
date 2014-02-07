@@ -1,2 +1,4 @@
 * Remove hard-coded path to Javafx
+* Add Quit button
+* Allow race deletion
 
