@@ -32,7 +32,7 @@ public class Race implements Serializable {
     addCheckpoint(new Checkpoint(distance));
   }
 
-  public void addCheckpoint(int distance, int speed) {
+  public void addCheckpoint(int distance, double speed) {
     addCheckpoint(new Checkpoint(distance, speed));
   }
 
@@ -89,6 +89,7 @@ public class Race implements Serializable {
       if (totalTime > time)
         return checkpoint;
     }
+    //TODO replace with assertion
     return -1; // cannot happen
   }
 
@@ -124,14 +125,14 @@ public class Race implements Serializable {
   }
 
   private class Leg implements Serializable {
-    private int distance;
-    private int speed;
+    private double distance;
+    private double speed;
     private long duration;
 
     Leg(Checkpoint start, Checkpoint end) {
       speed = start.getSpeed();
       distance = end.getPosition() - start.getPosition();
-      duration = distance * 3600 / speed;
+      duration = Math.round(distance * 3600 / speed);
     }
 
     public long getDuration() {

@@ -30,7 +30,7 @@ public class EditRaceController {
     Blaze.saveRaces();
   }
 
-  public void changeCheckpointSpeed(Race race, Checkpoint checkpoint, int newSpeed) {
+  public void changeCheckpointSpeed(Race race, Checkpoint checkpoint, double newSpeed) {
     race.addCheckpoint(checkpoint.getPosition(), newSpeed);
     Blaze.saveRaces();
   }

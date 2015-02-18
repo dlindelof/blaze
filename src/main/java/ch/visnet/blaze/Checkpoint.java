@@ -5,10 +5,10 @@ import java.io.Serializable;
 class Checkpoint implements Comparable<Checkpoint>, Serializable {
   private int position;
   private Checkpoint next, previous;
-  private int speed;
+  private double speed;
   private int id;
 
-  Checkpoint(int position, int speed) {
+  Checkpoint(int position, double speed) {
     this.position = position;
     this.speed = speed;
   }
@@ -28,11 +28,11 @@ class Checkpoint implements Comparable<Checkpoint>, Serializable {
     return this.getClass() == that.getClass() && this.position == ((Checkpoint) that).position;
   }
 
-  public int getSpeed() {
+  public double getSpeed() {
     return speed < 0 ? previous.getSpeed() : speed;
   }
 
-  public int getNewSpeed() {
+  public double getNewSpeed() {
     return speed;
   }
 
@@ -56,10 +56,10 @@ class Checkpoint implements Comparable<Checkpoint>, Serializable {
     this.previous = previous;
   }
 
-  public long getTimeOfPassageInSeconds() {
+  public long getTimeOfPassageInMilliSeconds() {
     if (null == previous)
       return 0;
-    return Math.round((position - previous.position) * 3600 / previous.getSpeed()) + previous.getTimeOfPassageInSeconds();
+    return Math.round((position - previous.position) * 3600 / previous.getSpeed()) + previous.getTimeOfPassageInMilliSeconds();
   }
 
   public void setId(int newId) {

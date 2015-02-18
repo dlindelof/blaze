@@ -16,6 +16,8 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.util.Callback;
 
+import java.text.DecimalFormat;
+
 public class MainView {
   private Stage stage;
   private Scene scene;
@@ -146,11 +148,11 @@ public class MainView {
       });
       final TextField newSpeedField = new TextField();
       if (-1 != checkpoint.getNewSpeed())
-        newSpeedField.setText(Integer.toString(checkpoint.getNewSpeed()));
+        newSpeedField.setText(new DecimalFormat("##.##").format(checkpoint.getNewSpeed()));
       newSpeedField.setPromptText("nouvelle vitesse");
       newSpeedField.setOnAction(new EventHandler<ActionEvent>() {
         public void handle(ActionEvent actionEvent) {
-          editRaceController.changeCheckpointSpeed(selectedRace.get(), checkpoint, Integer.parseInt(newSpeedField.getText()));
+          editRaceController.changeCheckpointSpeed(selectedRace.get(), checkpoint, Double.parseDouble(newSpeedField.getText()));
         }
       });
       Button deleteButton = new Button("DELETE");

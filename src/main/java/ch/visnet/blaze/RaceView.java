@@ -81,7 +81,7 @@ public class RaceView {
     });
     elapsedTime.addListener(new ChangeListener<Number>() {
       public void changed(ObservableValue<? extends Number> observableValue, Number _, Number newElapsedTime) {
-        long timeToNextCheckpoint = nextCheckpoint.getTimeOfPassageInSeconds() - newElapsedTime.longValue();
+        long timeToNextCheckpoint = nextCheckpoint.getTimeOfPassageInMilliSeconds() - newElapsedTime.longValue();
         if (timeToNextCheckpoint <= 0) {
           timeToNextCheckpoint = 0;
         }
@@ -176,7 +176,7 @@ public class RaceView {
   private List<KeyFrame> raceKeyFrame() {
     List<KeyFrame> result = new ArrayList<KeyFrame>();
     for (Checkpoint cp : race.getCheckpoints()) {
-      long timeOfPassage = cp.getTimeOfPassageInSeconds();
+      long timeOfPassage = cp.getTimeOfPassageInMilliSeconds();
       KeyFrame keyFrame = new KeyFrame(new Duration(timeOfPassage),
               new EventHandler<ActionEvent>() {
                 public void handle(ActionEvent actionEvent) {
