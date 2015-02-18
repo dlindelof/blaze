@@ -44,7 +44,7 @@ public class RaceTest {
     int someDistance = 42;
     double someNonIntegralSpeed = 40.5;
     race.addCheckpoint(someDistance, someNonIntegralSpeed);
-    assertEquals(someNonIntegralSpeed, race.getCheckpoints().get(0).getNewSpeed(), 0.001);
+    assertEquals(someNonIntegralSpeed, race.getCheckpoints().get(1).getNewSpeed(), 0.001);
   }
 
   @Test

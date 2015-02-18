@@ -1,36 +1,10 @@
 package ch.visnet.blaze;
 
-import org.junit.Before;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 
 public class CheckpointTest {
-  private CheckpointBuilder cb;
-
-  @Before
-  public void setup() {
-    cb = new CheckpointBuilder();
-  }
-
-  @Test
-  public void builderCanCreateCheckpoint() {
-    Checkpoint result;
-    cb.setPosition(1200);
-    result = cb.build();
-    assertEquals(1200, result.getPosition());
-    assertEquals(-1, result.getNewSpeed());
-  }
-
-  @Test
-  public void builderCanCreateCheckpointWithNewPositionAndSpeed() {
-    Checkpoint result;
-    cb.setPosition(1000);
-    cb.setNewSpeed(33);
-    result = cb.build();
-    assertEquals(1000, result.getPosition());
-    assertEquals(33, result.getNewSpeed());
-  }
 
   @Test
   public void knowsTimeOfPassage() {
