@@ -56,10 +56,10 @@ class Checkpoint implements Comparable<Checkpoint>, Serializable {
     this.previous = previous;
   }
 
-  public long getTimeOfPassage() {
+  public long getTimeOfPassageInSeconds() {
     if (null == previous)
       return 0;
-    return (position - previous.position) * 3600 / previous.getSpeed() + previous.getTimeOfPassage();
+    return Math.round((position - previous.position) * 3600 / previous.getSpeed()) + previous.getTimeOfPassageInSeconds();
   }
 
   public void setId(int newId) {
