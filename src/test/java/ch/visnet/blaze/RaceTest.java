@@ -40,6 +40,14 @@ public class RaceTest {
   }
 
   @Test
+  public void canEnterCheckpointWithNonIntegralSpeed() {
+    int someDistance = 42;
+    double someNonIntegralSpeed = 40.5;
+    race.addCheckpoint(someDistance, someNonIntegralSpeed);
+    assertEquals(someNonIntegralSpeed, race.getCheckpoints().get(0).getNewSpeed(), 0.001);
+  }
+
+  @Test
   public void givesNextCheckpointAtTime() {
     race.addCheckpoint(0, 55);
     race.addCheckpoint(1200);
